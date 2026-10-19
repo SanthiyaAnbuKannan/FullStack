@@ -106,3 +106,150 @@ Open backend/src/main/webapp/WEB-INF/.
 
 mvn clean package
 backend/target/TaskManager.war inside Tomcat 
+
+
+
+src/main/java/com/taskmanager/util/DBConnection.java
+
+
+package com.taskmanager.util;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+public class DBConnection {
+
+    private static final String URL =
+            "jdbc:mysql://localhost:3306/task_manager";
+
+    private static final String USER = "root";
+    private static final String PASSWORD = "your_mysql_password";
+
+    public static Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(URL, USER, PASSWORD);
+    }
+}
+
+
+
+
+src/main/java/com/taskmanager/, create a file named TestDB.java.
+
+import com.taskmanager.util.DBConnection;
+import java.sql.Connection;
+import java.sql.SQLException;
+
+public class TestDB {
+
+    public static void main(String[] args) {
+        try {
+            Connection connection = DBConnection.getConnection();
+
+            System.out.println("Database connected successfully!");
+
+            connection.close();
+
+        } catch (SQLException e) {
+            System.out.println("Database connection failed!");
+            e.printStackTrace();
+        }
+    }
+}
+
+
+
+src/main/java/com/taskmanager/model/Task.java
+
+
+package com.taskmanager.model;
+
+public class Task {
+
+    private int id;
+    private String title;
+    private boolean completed;
+
+    public Task() {
+    }
+
+    public Task(int id, String title, boolean completed) {
+        this.id = id;
+        this.title = title;
+        this.completed = completed;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public boolean isCompleted() {
+        return completed;
+    }
+
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
+    }
+}
+
+
+
+src/main/java/com/taskmanager/dao/TaskDAO.java
+
+
+package com.taskmanager.dao;
+
+import com.taskmanager.model.Task;
+import com.taskmanager.util.DBConnection;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+public class TaskDAO {
+
+    public List<Task> getAllTasks() throws SQLException {
+
+        List<Task> tasks = new ArrayList<>();
+
+        String sql = "SELECT id, title, completed FROM tasks";
+
+        try (
+            Connection connection = DBConnection.getConnection();
+            PreparedStatement statement =
+                    connection.prepareStatement(sql);
+            ResultSet resultSet = statement.executeQuery()
+        ) {
+            while (resultSet.next()) {
+
+                Task task = new Task(
+                    resultSet.getInt("id"),
+                    resultSet.getString("title"),
+                    resultSet.getBoolean("completed")
+                );
+
+                tasks.add(task);
+            }
+        }
+
+        return tasks;
+    }
+}
+
+
+
